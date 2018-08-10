@@ -4,8 +4,8 @@
 unsigned int middlePoints[5][2];
 
 // Controller variables
-int p_err = 0;
-int i_err = 0;
+signed int p_err = 0;
+signed int i_err = 0;
 
 double mu_e_vn = 0.0;
 double mu_e_n = 0.0;
@@ -35,14 +35,22 @@ unsigned int FuzzyCtl(unsigned int intensityLevel, unsigned int setPoint)
 
     // Get the proportional error
     p_err = setPoint - intensityLevel;
+
+    /*
+     * The worst case scenarios are when we set our set point in the boundaries of the
+     * Fuzzy sets and we read the intensity level on the limits of a 8 bits Image:
+     * -Set point set at 0 and 255 intensity level
+     * -Set point set at 255 and 0 intensity level
+     */
+
     // Verify limits of the proportional error
-    if(p_err >= 255)
+    if(p_err >= FUZZY_SETS_UPPER_LIMIT)
     {
-        p_err = 250;
+        p_err = FUZZY_SETS_UPPER_LIMIT - HEADROOM;
     }
-    else if (p_err <= 0)
+    else if (p_err <= FUZZY_SETS_LOWER_LIMIT)
     {
-        p_err = 5;
+        p_err = FUZZY_SETS_LOWER_LIMIT + HEADROOM;
     }
     else
     {
@@ -51,13 +59,13 @@ unsigned int FuzzyCtl(unsigned int intensityLevel, unsigned int setPoint)
     // Get the integral error
     i_err += p_err;
     // Verify limits of the integral error
-    if(i_err >= 255)
+    if(i_err >= FUZZY_SETS_UPPER_LIMIT)
     {
-        i_err = 250;
+        i_err = FUZZY_SETS_UPPER_LIMIT - HEADROOM;
     }
-    else if (i_err <= 0)
+    else if (i_err <= FUZZY_SETS_LOWER_LIMIT)
     {
-        i_err = 5;
+        i_err = FUZZY_SETS_LOWER_LIMIT + HEADROOM;
     }
     else
     {
@@ -86,7 +94,8 @@ unsigned int fuzzyRules(void)
     double ut_on = 0.0;
     double ut_von = 0.0;
 
-    double ut = 0.0;
+    unsigned int ut = 0;
+
     // Local variable initialization
     memset(u_voff, 0x00, sizeof(u_voff));
     memset(u_off, 0x00, sizeof(u_off));
@@ -143,13 +152,12 @@ unsigned int fuzzyRules(void)
 
     // Get the module of each output membership
     ut_voff = sqrt(pow(u_voff[0], 2.0) + pow(u_voff[1], 2.0)+ pow(u_voff[2], 2.0)+ pow(u_voff[3], 2.0)+ pow(u_voff[4], 2.0)+ pow(u_voff[5], 2.0));
-    ut_off = sqrt(pow(u_off[0], 2.0) + pow(u_off[1], 2.0)+ pow(u_off[2], 2.0)+ pow(u_off[3], 2.0)+ pow(u_off[4], 2.0)+ pow(u_off[5], 2.0));
-    ut_on = sqrt(pow(u_on[0], 2.0) + pow(u_on[1], 2.0)+ pow(u_on[2], 2.0)+ pow(u_on[3], 2.0)+ pow(u_on[4], 2.0)+ pow(u_on[5], 2.0));
-    ut_von = sqrt(pow(u_von[0], 2.0) + pow(u_von[1], 2.0)+ pow(u_von[2], 2.0)+ pow(u_von[3], 2.0)+ pow(u_von[4], 2.0)+ pow(u_von[5], 2.0));
+    ut_off  = sqrt(pow(u_off[0], 2.0) + pow(u_off[1], 2.0)+ pow(u_off[2], 2.0)+ pow(u_off[3], 2.0)+ pow(u_off[4], 2.0)+ pow(u_off[5], 2.0));
+    ut_on   = sqrt(pow(u_on[0], 2.0) + pow(u_on[1], 2.0)+ pow(u_on[2], 2.0)+ pow(u_on[3], 2.0)+ pow(u_on[4], 2.0)+ pow(u_on[5], 2.0));
+    ut_von  = sqrt(pow(u_von[0], 2.0) + pow(u_von[1], 2.0)+ pow(u_von[2], 2.0)+ pow(u_von[3], 2.0)+ pow(u_von[4], 2.0)+ pow(u_von[5], 2.0));
 
-    ut = (unsigned int) ((ut_voff * NEGATIVE) +(ut_off * ZERO) + (ut_on * POSITIVE) + (ut_von * VERY_POSITIVE));
+    ut = (unsigned int) ((ut_voff * OUT_NEGATIVE) +(ut_off * OUT_ZERO) + (ut_on * OUT_POSITIVE) + (ut_von * OUT_V_POSITIVE));
     return ut;
-
 }
 
 /* Function name: memDegreeI(int)
@@ -161,7 +169,7 @@ void memDegreeI(int i_err)
     // Function from the VERY_NEGATIVE area
     if((VERY_NEGATIVE <= i_err) && (NEGATIVE > i_err))
     {
-        mu_ei_vn = (NEGATIVE - i_err)/(NEGATIVE - VERY_NEGATIVE);
+        mu_ei_vn = 1 + ((VERY_NEGATIVE - i_err)/(NEGATIVE - VERY_NEGATIVE));
     }
     else
     {
@@ -174,20 +182,20 @@ void memDegreeI(int i_err)
     }
     else if((NEGATIVE <= i_err) && (ZERO > i_err))
     {
-        mu_ei_n = (ZERO - i_err)/(ZERO - NEGATIVE);
+        mu_ei_n = 1 + ((NEGATIVE - i_err)/(ZERO - NEGATIVE));
     }
     else
     {
         mu_ei_n = 0.0;
     }
     // Function of the ZERO area
-    if((NEGATIVE <= i_err) && (ZERO> i_err))
+    if((NEGATIVE <= i_err) && (ZERO > i_err))
     {
         mu_ei_z = (i_err - NEGATIVE)/(ZERO - NEGATIVE);
     }
     else if((ZERO <= i_err) && (POSITIVE > i_err))
     {
-        mu_ei_z = (POSITIVE - i_err)/(POSITIVE - ZERO);
+        mu_ei_z = 1 + ((ZERO - i_err)/(POSITIVE - ZERO));
     }
     else
     {
@@ -200,14 +208,14 @@ void memDegreeI(int i_err)
     }
     else if((POSITIVE <= i_err) && (VERY_POSITIVE > i_err))
     {
-        mu_ei_p = (VERY_POSITIVE - i_err)/(VERY_POSITIVE - POSITIVE);
+        mu_ei_p = 1 + ((POSITIVE - i_err)/(VERY_POSITIVE - POSITIVE));
     }
     else
     {
         mu_ei_p = 0.0;
     }
     // Function of the VERY_POSITIVE area
-    if((POSITIVE <= i_err) && (VERY_POSITIVE> i_err))
+    if((POSITIVE <= i_err) && (VERY_POSITIVE > i_err))
     {
         mu_ei_p = (i_err - POSITIVE)/(VERY_POSITIVE - POSITIVE);
     }
@@ -215,7 +223,6 @@ void memDegreeI(int i_err)
     {
         mu_ei_p = 0.0;
     }
-
 }
 
 /* Function name: memDegreeP(int)
@@ -227,7 +234,7 @@ void memDegreeP(int p_err)
     // Function from the VERY_NEGATIVE area
     if((VERY_NEGATIVE <= p_err) && (NEGATIVE > p_err))
     {
-        mu_e_vn = (NEGATIVE - p_err)/(NEGATIVE - VERY_NEGATIVE);
+        mu_e_vn = 1 + ((VERY_NEGATIVE - p_err)/(NEGATIVE - VERY_NEGATIVE));
     }
     else
     {
@@ -240,7 +247,7 @@ void memDegreeP(int p_err)
     }
     else if((NEGATIVE <= p_err) && (ZERO > p_err))
     {
-        mu_e_n = (ZERO - p_err)/(ZERO - NEGATIVE);
+        mu_e_n = 1 + ((NEGATIVE - p_err)/(ZERO - NEGATIVE));
     }
     else
     {
@@ -253,7 +260,7 @@ void memDegreeP(int p_err)
     }
     else if((ZERO <= p_err) && (POSITIVE > p_err))
     {
-        mu_e_z = (POSITIVE - p_err)/(POSITIVE - ZERO);
+        mu_e_z = 1 + ((ZERO - p_err)/(POSITIVE - ZERO));
     }
     else
     {
@@ -266,14 +273,14 @@ void memDegreeP(int p_err)
     }
     else if((POSITIVE <= p_err) && (VERY_POSITIVE > p_err))
     {
-        mu_e_p = (VERY_POSITIVE - p_err)/(VERY_POSITIVE - POSITIVE);
+        mu_e_p = 1 + ((POSITIVE - p_err)/(VERY_POSITIVE - POSITIVE));
     }
     else
     {
         mu_e_p = 0.0;
     }
     // Function of the VERY_POSITIVE area
-    if((POSITIVE <= p_err) && (VERY_POSITIVE> p_err))
+    if((POSITIVE <= p_err) && (VERY_POSITIVE > p_err))
     {
         mu_e_p = (p_err - POSITIVE)/(VERY_POSITIVE - POSITIVE);
     }
