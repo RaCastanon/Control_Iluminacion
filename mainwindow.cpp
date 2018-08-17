@@ -339,7 +339,7 @@ void MainWindow::onTimeOut()
          * 255 -> 100
          * ut  -> x
          */
-        ut = 100 - (unsigned int)((ut * 100) / 255);
+        ut = 100 - (unsigned int)((ut * 100.0) / 254.0);
         itoa(ut, u_t, 10);
         u_t[2] = '\n';
         // Verify if serial port is open before writting

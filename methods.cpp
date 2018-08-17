@@ -101,60 +101,64 @@ unsigned int fuzzyRules(void)
     memset(u_off, 0x00, sizeof(u_off));
     memset(u_on, 0x00, sizeof(u_on));
     memset(u_von, 0x00, sizeof(u_von));
+
     // Rule one
-    u_voff[0] = std::min(mu_e_vn, mu_ei_vn);
+    u_off[0] = std::min(mu_e_vn, mu_ei_vn);
     // Rule two
-    u_voff[1] = std::min(mu_e_vn, mu_ei_n);
+    u_off[1] = std::min(mu_e_vn, mu_ei_n);
     // Rule three
-    u_voff[2] = std::min(mu_e_vn, mu_ei_z);
+    u_off[2] = std::min(mu_e_vn, mu_ei_z);
     // Rule four
-    u_voff[3] = std::min(mu_e_vn, mu_ei_p);
+    u_off[3] = std::min(mu_e_vn, mu_ei_p);
     // Rule five
-    u_voff[4] = std::min(mu_e_vn, mu_ei_vp);
+    u_off[4] = std::min(mu_e_vn, mu_ei_vp);
     // Rule six
-    u_voff[5] = std::min(mu_e_n, mu_ei_vn);
+    u_off[5] = std::min(mu_e_z, mu_ei_vn);
+
     // Rule seven
-    u_off[0] = std::min(mu_e_n, mu_ei_n);
+    u_voff[0] = std::min(mu_e_n, mu_ei_vn);
     // Rule eight
-    u_off[1] = std::min(mu_e_n, mu_ei_z);
+    u_voff[1] = std::min(mu_e_n, mu_ei_n);
     // Rule nine
-    u_off[2] = std::min(mu_e_n, mu_ei_p);
+    u_voff[2] = std::min(mu_e_n, mu_ei_z);
     // Rule ten
-    u_off[3] = std::min(mu_e_n, mu_ei_vp);
+    u_voff[3] = std::min(mu_e_n, mu_ei_p);
     // Rule eleven
-    u_off[4] = std::min(mu_e_z, mu_ei_vn);
+    u_voff[4] = std::min(mu_e_n, mu_ei_vp);
     // Rule twelve
-    u_off[5] = std::min(mu_e_z, mu_ei_n);
+    u_voff[5] = std::min(mu_e_z, mu_ei_n);
+
     // Rule thirteen
-    u_on[0] = std::min(mu_e_z, mu_ei_z);
+    u_on[0] = std::min(mu_e_vp, mu_ei_vn);
     // Rule fourteen
-    u_on[1] = std::min(mu_e_z, mu_ei_p);
+    u_on[1] = std::min(mu_e_vp, mu_ei_n);
     // Rule fiveteen
-    u_on[2] = std::min(mu_e_z, mu_ei_vp);
+    u_on[2] = std::min(mu_e_vp, mu_ei_z);
     // Rule sixteen
-    u_on[3] = std::min(mu_e_p, mu_ei_vn);
+    u_on[3] = std::min(mu_e_vp, mu_ei_p);
     // Rule seventeen
-    u_on[4] = std::min(mu_e_p, mu_ei_n);
+    u_on[4] = std::min(mu_e_vp, mu_ei_vp);
     // Rule eighteen
-    u_on[5] = std::min(mu_e_p, mu_ei_z);
+    u_on[5] = std::min(mu_e_z, mu_ei_vp);
+
     // Rule nineteen
-    u_von[0] = std::min(mu_e_p, mu_ei_p);
+    u_von[0] = std::min(mu_e_z, mu_ei_p);
     // Rule twenty
     u_von[1] = std::min(mu_e_p, mu_ei_vp);
     // Rule twentyone
-    u_von[2] = std::min(mu_e_vp, mu_ei_vn);
+    u_von[2] = std::min(mu_e_p, mu_ei_n);
     // Rule twentytwo
-    u_von[3] = std::min(mu_e_vp, mu_ei_n);
+    u_von[3] = std::min(mu_e_p, mu_ei_z);
     // Rule twentythree
-    u_von[4] = std::min(mu_e_vp, mu_ei_z);
+    u_von[4] = std::min(mu_e_p, mu_ei_p);
     // Rule twentyfour
-    u_von[5] = std::min(mu_e_vp, mu_ei_p);
+    u_von[5] = std::min(mu_e_p, mu_ei_vp);
 
     // Get the module of each output membership
-    ut_voff = sqrt(pow(u_voff[0], 2.0) + pow(u_voff[1], 2.0)+ pow(u_voff[2], 2.0)+ pow(u_voff[3], 2.0)+ pow(u_voff[4], 2.0)+ pow(u_voff[5], 2.0));
-    ut_off  = sqrt(pow(u_off[0], 2.0) + pow(u_off[1], 2.0)+ pow(u_off[2], 2.0)+ pow(u_off[3], 2.0)+ pow(u_off[4], 2.0)+ pow(u_off[5], 2.0));
-    ut_on   = sqrt(pow(u_on[0], 2.0) + pow(u_on[1], 2.0)+ pow(u_on[2], 2.0)+ pow(u_on[3], 2.0)+ pow(u_on[4], 2.0)+ pow(u_on[5], 2.0));
-    ut_von  = sqrt(pow(u_von[0], 2.0) + pow(u_von[1], 2.0)+ pow(u_von[2], 2.0)+ pow(u_von[3], 2.0)+ pow(u_von[4], 2.0)+ pow(u_von[5], 2.0));
+    ut_voff = (double)sqrt(pow(u_voff[0], 2.0) + pow(u_voff[1], 2.0)+ pow(u_voff[2], 2.0)+ pow(u_voff[3], 2.0)+ pow(u_voff[4], 2.0)+ pow(u_voff[5], 2.0));
+    ut_off  = (double)sqrt(pow(u_off[0], 2.0) + pow(u_off[1], 2.0)+ pow(u_off[2], 2.0)+ pow(u_off[3], 2.0)+ pow(u_off[4], 2.0)+ pow(u_off[5], 2.0));
+    ut_on   = (double)sqrt(pow(u_on[0], 2.0) + pow(u_on[1], 2.0)+ pow(u_on[2], 2.0)+ pow(u_on[3], 2.0)+ pow(u_on[4], 2.0)+ pow(u_on[5], 2.0));
+    ut_von  = (double)sqrt(pow(u_von[0], 2.0) + pow(u_von[1], 2.0)+ pow(u_von[2], 2.0)+ pow(u_von[3], 2.0)+ pow(u_von[4], 2.0)+ pow(u_von[5], 2.0));
 
     ut = (unsigned int) ((ut_voff * OUT_NEGATIVE) +(ut_off * OUT_ZERO) + (ut_on * OUT_POSITIVE) + (ut_von * OUT_V_POSITIVE));
     return ut;
@@ -297,7 +301,6 @@ void memDegreeP(int p_err)
 void setMiddlePoints(unsigned int cols, unsigned int rows)
 {
     // Initialize global variable
-    memset(middlePoints, 0, sizeof(middlePoints));
 
     // Get middle points
     middlePoints[0][0] = (unsigned int)(cols/2.0);
